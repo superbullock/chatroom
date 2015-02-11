@@ -1,22 +1,33 @@
 var app = angular.module('chatroom');
 
-app.service('parseService', function($http){
+app.service('parseService', function ($http, $q) {
   //Here you'll need to create two methods. One called postData and the other called getData.
-  
-  //On the lines below create a getData method. This method will retrieve data from the parse backend.
-  //The url for the get request should be 'https://api.parse.com/1/classes/chat?order=-createdAt'
-  //Be sure to return whatever gets returned from $http so you can call .then in your controller.
- 
 
 
-  //On the line below create the postData method. This method will add data to the parse backend.
-  //The url for the request needs to be 'https://api.parse.com/1/classes/chat'
-  //Because we're making a POST request, we need a way to tell parse the data we want to give it, 
-    //in your $http call (along with url and method) have a data property which has a value that is equal to another object which a key of text and a value of the message being passed to parse. IE data: {text: yourMessage} 
-  //Also, remember that $http returns a promise. So if you return the whole $http call (return $http(...)), you can then use .then in your controller.
-  
+  this.getData = function (str) {
+    var deferred = $q.defer();
+    str = str.split(' ').join('%');
+    $http.get('https://api.parse.com/1/classes/' + str + '?order=-createdAt').then(function (data) {
+      for (var i = 0; i < data.data.results.length; i++) {
+        if (!data.data.results[i].text) {
+          data.data.results.splice(i, 1)
+        }
+      }
+      deferred.resolve(data.data.results)
+    });
+    return deferred.promise;
+  };
+
+
   //postData method here
-  
-  
-  //getData method here
+  this.postData = function (string, name) {
+    var deferred = $q.defer();
+    name = name.split(' ').join('%');
+    $http.post('https://api.parse.com/1/classes/' + name, {
+      text: string
+    }).then(function (data) {
+      deferred.resolve();
+    });
+    return deferred.promise;
+  };
 });
